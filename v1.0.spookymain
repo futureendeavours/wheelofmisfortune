@@ -1,5 +1,7 @@
-#include <Servo.h>
-#include <NewPing.h>
+#include <Servo.h>    //servo library
+#include <NewPing.h>  // distance sensor library. Code below was using the HC-SRO4 sonic distance sensor
+
+// I am definitely NOT a professional. Pretty much have no idea what I'm doing, but I do know that the below code works. Experts will definitely find a better way to do things then listed here. 
 
 #define TRIGGER_PIN 12    // Arduino pin tied to trigger pin on the ultrasonic sensor.
 #define ECHO_PIN 11       // Arduino pin tied to echo pin on the ultrasonic sensor.
@@ -18,7 +20,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);  // NewPing setup of pins an
 void setup() {
   smoke.attach(9);  // attaches the servo on pin 9 to the Servo object
   wheel.attach(8);
-  Serial.begin(9600);
+  Serial.begin(9600); // this is here to activate the serial output for the monitor in IDE
 }
 
 void loop() {
@@ -30,14 +32,13 @@ void smokemachine() {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= 180000) {  // value on this line is how long you want to wait between presses. 60000 = 1 minute
     previousMillis = currentMillis;
-    for (pos = 0; pos <= 140; pos += 140) {  // goes from 0 degrees to 180 degrees
-      // in steps of 1 degree
+    for (pos = 0; pos <= 140; pos += 140) {  // servo position
       smoke.write(pos);  // tell servo to go to position in variable 'pos'
-      delay(400);        // waits 15 ms for the servo to reach the position
+      delay(400);        // waits ms for the servo to reach the position
     }
-    for (pos = 140; pos >= 0; pos -= 140) {  // goes from 180 degrees to 0 degrees
+    for (pos = 140; pos >= 0; pos -= 140) {  // servo position return
       smoke.write(pos);                      // tell servo to go to position in variable 'pos'
-      delay(7000);                          // waits 15 ms for the servo to reach the position
+      delay(7000);                          // waits ms for the servo to reach the position
     }
   }
 }
@@ -46,7 +47,7 @@ void spinwheel() {
   distance = sonar.ping_cm();
   Serial.print("Ping: ");
   Serial.print(distance);  // Send ping, get distance in cm and print result (0 = outside setdistance range)
-  Serial.println("cm");
+  Serial.println("cm"); // these last three print items will print "Ping: 24cm" or whatever the distance the sensor picks up in the serial monitor, useful for trouble shooting
 
   if ((distance <=10) && (distance > 0)) { //(distance < 10) stupid sonic sensor logs 0 sometimes, so need a range to get around that without triggering
     //Serial.println("Spin Wheel");  // this is a continous servo. For a servo modified for continuous rotation the key values are 0 = max speed in one direction 180 = max speed in opposite direction 90= stop
@@ -60,7 +61,7 @@ void spinwheel() {
     delay(400);
   } else {
     delay(4000);
-   wheel.write(90);
+   wheel.write(90); // basically, if hand is NOT near the distance sensor, then tell the servo to be stopped
     delay(400);
   }
 }
