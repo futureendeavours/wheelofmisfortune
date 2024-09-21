@@ -1,0 +1,66 @@
+#include <Servo.h>
+#include <NewPing.h>
+
+#define TRIGGER_PIN 12    // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN 11       // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 200  // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+
+Servo smoke;
+Servo wheel;
+unsigned long previousMillis = 0;  // stores last time smoke servo was updated - used for the smoke button press servo
+unsigned int distance;             //for the distance thingy
+
+int pos = 0;  // variable to store the servo position
+
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);  // NewPing setup of pins and maximum distance.
+
+void setup() {
+  smoke.attach(9);  // attaches the servo on pin 9 to the Servo object
+  wheel.attach(8);
+  Serial.begin(9600);
+}
+
+void loop() {
+  smokemachine();  // call the functions that do the work
+  spinwheel();
+}
+void smokemachine() {
+  //Serial.println("Smoke Button");
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 180000) {  // value on this line is how long you want to wait between presses. 60000 = 1 minute
+    previousMillis = currentMillis;
+    for (pos = 0; pos <= 140; pos += 140) {  // goes from 0 degrees to 180 degrees
+      // in steps of 1 degree
+      smoke.write(pos);  // tell servo to go to position in variable 'pos'
+      delay(400);        // waits 15 ms for the servo to reach the position
+    }
+    for (pos = 140; pos >= 0; pos -= 140) {  // goes from 180 degrees to 0 degrees
+      smoke.write(pos);                      // tell servo to go to position in variable 'pos'
+      delay(7000);                          // waits 15 ms for the servo to reach the position
+    }
+  }
+}
+void spinwheel() {
+  delay(400);
+  distance = sonar.ping_cm();
+  Serial.print("Ping: ");
+  Serial.print(distance);  // Send ping, get distance in cm and print result (0 = outside setdistance range)
+  Serial.println("cm");
+
+  if ((distance <=10) && (distance > 0)) { //(distance < 10) stupid sonic sensor logs 0 sometimes, so need a range to get around that without triggering
+    //Serial.println("Spin Wheel");  // this is a continous servo. For a servo modified for continuous rotation the key values are 0 = max speed in one direction 180 = max speed in opposite direction 90= stop
+    wheel.write(180);
+    delay(400);
+    wheel.write(160);
+    delay(400);
+    wheel.write(140);
+    delay(400);
+    wheel.write(120);
+    delay(400);
+  } else {
+    delay(4000);
+   wheel.write(90);
+    delay(400);
+  }
+}
